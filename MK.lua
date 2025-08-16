@@ -1,5 +1,5 @@
--- Universal ESP + Team + Health + Tracers + Hitbox + Aimbot + Menu hình tròn + FOV Circle + Aim gần kẻ địch + Hitbox bỏ qua team mình + Di chuyển menu + Hitbox giữ nguyên khi chết
--- By Conghau — 2025-08-16
+-- CONG HAU ESP + Team + Health + Tracers + Hitbox + Aimbot + Menu hình tròn + FOV Circle + Aim gần kẻ địch + Hitbox bỏ qua team mình + Di chuyển menu + Hitbox giữ khi chết + ESP chỉ hiện khi địch ở gần + Key unlock
+-- By CongHau — 2025-08-16
 
 local TEAM_COLORS = {
     Color3.fromRGB(255, 75, 75),
@@ -28,7 +28,11 @@ local State = {
     hitboxHeadSize = 10,
     menuOpened = false,
     menuPos = "left",
+    espDistance = 120,
 }
+
+local keyRequired = "VietNam01"
+local keyUnlocked = false
 
 local HasDrawing = pcall(function()
     return Drawing and typeof(Drawing.new) == "function"
@@ -97,7 +101,7 @@ end
 
 local function createUI()
     local gui = Instance.new("ScreenGui")
-    gui.Name = "UniversalESP_Menu"
+    gui.Name = "CONGHAU_ESP_Menu"
     gui.ResetOnSpawn = false
     gui.IgnoreGuiInset = false
     gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
@@ -118,7 +122,7 @@ local function createUI()
 
     -- Menu frame (ẩn khi chưa mở)
     menuFrame = Instance.new("Frame")
-    menuFrame.Size = UDim2.fromOffset(220, 355)
+    menuFrame.Size = UDim2.fromOffset(220, 430)
     menuFrame.Position = menuPositions[State.menuPos] + UDim2.new(0,60,0,-145)
     menuFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
     menuFrame.BorderSizePixel = 0
@@ -134,11 +138,63 @@ local function createUI()
         menuCircleBtn.BackgroundColor3 = State.menuOpened and Color3.fromRGB(35,120,70) or Color3.fromRGB(80,120,220)
     end)
 
+    -- KEY UNLOCK UI
+    local keyLabel = Instance.new("TextLabel")
+    keyLabel.Size = UDim2.new(1, -20, 0, 30)
+    keyLabel.Position = UDim2.fromOffset(10, 35)
+    keyLabel.Text = "Nhập Key để mở menu:"
+    keyLabel.BackgroundTransparency = 1
+    keyLabel.Font = Enum.Font.Gotham
+    keyLabel.TextSize = 15
+    keyLabel.TextColor3 = Color3.new(1,1,1)
+    keyLabel.Name = "KeyLabel"
+    keyLabel.Parent = menuFrame
+
+    local keyBox = Instance.new("TextBox")
+    keyBox.Size = UDim2.new(1, -20, 0, 24)
+    keyBox.Position = UDim2.fromOffset(10, 65)
+    keyBox.Text = ""
+    keyBox.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+    keyBox.TextColor3 = Color3.new(1,1,1)
+    keyBox.Font = Enum.Font.Gotham
+    keyBox.TextSize = 14
+    keyBox.Name = "KeyBox"
+    keyBox.Parent = menuFrame
+    Instance.new("UICorner", keyBox).CornerRadius = UDim.new(0, 8)
+
+    keyBox.FocusLost:Connect(function()
+        if keyBox.Text == keyRequired then
+            keyUnlocked = true
+            keyBox.BackgroundColor3 = Color3.fromRGB(35, 120, 70)
+            keyLabel.Text = "Đúng key! Đã mở menu."
+        else
+            keyUnlocked = false
+            keyBox.BackgroundColor3 = Color3.fromRGB(90,35,35)
+            keyLabel.Text = "Sai key! Nhập lại."
+        end
+        for _,v in pairs(menuFrame:GetChildren()) do
+            if v.Name ~= "KeyLabel" and v.Name ~= "KeyBox" then
+                v.Visible = keyUnlocked
+            end
+        end
+    end)
+
+    -- Ẩn tất cả phần menu trừ key khi chưa mở khoá
+    local function hideMenuIfLocked()
+        for _,v in pairs(menuFrame:GetChildren()) do
+            if v.Name ~= "KeyLabel" and v.Name ~= "KeyBox" then
+                v.Visible = false
+            end
+        end
+    end
+    hideMenuIfLocked()
+
+    -- CÁC PHẦN MENU KHÁC
     local title = Instance.new("TextLabel")
     title.Size = UDim2.new(1, -100, 0, 28)
-    title.Position = UDim2.fromOffset(10, 6)
+    title.Position = UDim2.fromOffset(10, 95)
     title.BackgroundTransparency = 1
-    title.Text = "Universal ESP"
+    title.Text = "CONG HAU ESP"
     title.Font = Enum.Font.GothamBold
     title.TextSize = 18
     title.TextColor3 = Color3.new(1,1,1)
@@ -148,7 +204,7 @@ local function createUI()
     -- Nút chọn vị trí menu
     local moveBtn = Instance.new("TextButton")
     moveBtn.Size = UDim2.new(0, 80, 0, 28)
-    moveBtn.Position = UDim2.fromOffset(125, 6)
+    moveBtn.Position = UDim2.fromOffset(125, 95)
     moveBtn.BackgroundColor3 = Color3.fromRGB(45,45,60)
     moveBtn.TextColor3 = Color3.new(1,1,1)
     moveBtn.Font = Enum.Font.Gotham
@@ -192,11 +248,11 @@ local function createUI()
         return btn
     end
 
-    makeToggle(40, "ESP", function() return State.espEnabled end, function(v) State.espEnabled = v end)
-    makeToggle(75, "Tracer", function() return State.tracerEnabled end, function(v) State.tracerEnabled = v end)
-    makeToggle(110,"Hitbox Thân", function() return State.hitboxEnabled end, function(v) State.hitboxEnabled = v end)
-    makeToggle(145,"Hitbox Đầu", function() return State.hitboxHeadEnabled end, function(v) State.hitboxHeadEnabled = v end)
-    makeToggle(180,"Aim", function() return State.aimEnabled end, function(v) State.aimEnabled = v end)
+    makeToggle(135, "ESP", function() return State.espEnabled end, function(v) State.espEnabled = v end)
+    makeToggle(170, "Tracer", function() return State.tracerEnabled end, function(v) State.tracerEnabled = v end)
+    makeToggle(205,"Hitbox Thân", function() return State.hitboxEnabled end, function(v) State.hitboxEnabled = v end)
+    makeToggle(240,"Hitbox Đầu", function() return State.hitboxHeadEnabled end, function(v) State.hitboxHeadEnabled = v end)
+    makeToggle(275,"Aim", function() return State.aimEnabled end, function(v) State.aimEnabled = v end)
 
     local function makeNumberBox(y, label, getFn, setFn, min, max)
         local lbl = Instance.new("TextLabel")
@@ -231,13 +287,14 @@ local function createUI()
         end)
     end
 
-    makeNumberBox(215, "Aim FOV", function() return State.fov end, function(v) State.fov = v end, 10, 180)
-    makeNumberBox(250, "Hitbox Thân", function() return State.hitboxSize end, function(v) State.hitboxSize = v end, 5, 20)
-    makeNumberBox(285, "Hitbox Đầu", function() return State.hitboxHeadSize end, function(v) State.hitboxHeadSize = v end, 5, 20)
+    makeNumberBox(310, "Aim FOV", function() return State.fov end, function(v) State.fov = v end, 10, 180)
+    makeNumberBox(345, "Hitbox Thân", function() return State.hitboxSize end, function(v) State.hitboxSize = v end, 5, 20)
+    makeNumberBox(380, "Hitbox Đầu", function() return State.hitboxHeadSize end, function(v) State.hitboxHeadSize = v end, 5, 20)
+    makeNumberBox(415, "ESP Distance", function() return State.espDistance end, function(v) State.espDistance = v end, 20, 500)
 
     local note = Instance.new("TextLabel")
     note.Size = UDim2.new(1, -10, 0, 18)
-    note.Position = UDim2.fromOffset(10, 320)
+    note.Position = UDim2.fromOffset(10, 450)
     note.BackgroundTransparency = 1
     note.Text = HasDrawing and "Drawing API: YES (tracers enabled)" or "Drawing API: NO (tracers disabled)"
     note.Font = Enum.Font.Gotham
@@ -253,7 +310,7 @@ end
 local fovCircle
 local function updateFOVCircle()
     if not HasDrawing then return end
-    if State.aimEnabled then
+    if State.aimEnabled and keyUnlocked then
         if not fovCircle then
             fovCircle = Drawing.new("Circle")
             fovCircle.Thickness = 2
@@ -359,10 +416,10 @@ end
 
 local function applyHitbox(character, enable, store, player)
     if not player then return end
-    if player.Team == LocalPlayer.Team then return end -- BỎ QUA TEAM MÌNH
+    if player.Team == LocalPlayer.Team then return end
     local hrp = character:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
-    if enable then
+    if enable and keyUnlocked then
         if store then
             store.hrpSize = hrp.Size
             store.hrpCollide = hrp.CanCollide
@@ -386,10 +443,10 @@ end
 
 local function applyHitboxHead(character, enable, store, player)
     if not player then return end
-    if player.Team == LocalPlayer.Team then return end -- BỎ QUA TEAM MÌNH
+    if player.Team == LocalPlayer.Team then return end
     local head = character:FindFirstChild("Head")
     if not head then return end
-    if enable then
+    if enable and keyUnlocked then
         if store then
             store.headSize = head.Size
             store.headMassless = head.Massless
@@ -476,11 +533,20 @@ end
 -- GLOBAL APPLY
 --------------------------
 local function applyEspVisibility()
-    for _,container in pairs(ESPMap) do
-        if container.gui then container.gui.Enabled = State.espEnabled end
-        if container.highlight then container.highlight.Enabled = State.espEnabled end
-        if container.box then container.box.Visible = State.espEnabled end
-        if container.tracer then container.tracer.Visible = (State.espEnabled and State.tracerEnabled) end
+    for p,container in pairs(ESPMap) do
+        local show = State.espEnabled and keyUnlocked
+        if show and container.character and container.character:FindFirstChild("HumanoidRootPart")
+            and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        then
+            local dist = (container.character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            show = dist <= State.espDistance
+        else
+            show = false
+        end
+        if container.gui then container.gui.Enabled = show end
+        if container.highlight then container.highlight.Enabled = show end
+        if container.box then container.box.Visible = show end
+        if container.tracer then container.tracer.Visible = (show and State.tracerEnabled) end
     end
 end
 
@@ -529,7 +595,7 @@ task.spawn(function()
     local lastAim = false
     while true do
         if State.aimEnabled ~= lastAim then
-            if State.aimEnabled then
+            if State.aimEnabled and keyUnlocked then
                 if not aimingConn then
                     aimingConn = RunService.RenderStepped:Connect(function()
                         local target = getClosestEnemyToPlayer()
@@ -554,7 +620,7 @@ end)
 -- TRACER UPDATE LOOP
 --------------------------
 RunService.RenderStepped:Connect(function()
-    if not State.espEnabled or not State.tracerEnabled or not HasDrawing then
+    if not State.espEnabled or not State.tracerEnabled or not HasDrawing or not keyUnlocked then
         for _,ct in pairs(ESPMap) do
             if ct.tracer then ct.tracer.Visible = false end
         end
@@ -624,19 +690,20 @@ createUI()
 
 pcall(function()
     StarterGui:SetCore("SendNotification", {
-        Title = "Universal ESP",
-        Text = string.format("Drawing: %s | Teams: %d", HasDrawing and "YES" or "NO", #TEAM_COLORS),
-        Duration = 6
+        Title = "CONG HAU ESP",
+        Text = "Nhập key VietNam01 để mở menu!",
+        Duration = 8
     })
 end)
 
 task.spawn(function()
-    local last = {esp=false, tracer=false, hit=false, head=false, fov=State.fov, hsize=State.hitboxSize, hhead=State.hitboxHeadSize, menuPos=State.menuPos}
+    local last = {esp=false, tracer=false, hit=false, head=false, fov=State.fov, hsize=State.hitboxSize, hhead=State.hitboxHeadSize, menuPos=State.menuPos, espDist=State.espDistance}
     while true do
-        if State.espEnabled ~= last.esp or State.tracerEnabled ~= last.tracer then
+        if State.espEnabled ~= last.esp or State.tracerEnabled ~= last.tracer or State.espDistance ~= last.espDist then
             applyEspVisibility()
             last.esp = State.espEnabled
             last.tracer = State.tracerEnabled
+            last.espDist = State.espDistance
         end
         if State.hitboxEnabled ~= last.hit or State.hitboxSize ~= last.hsize then
             applyHitboxAll()
